@@ -39,7 +39,6 @@ echo.
 
 for %%p in (
     RARLab.WinRAR
-    7zip.7zip
     Adobe.Acrobat.Reader.64-bit
     Microsoft.WindowsTerminal
     Notepad++.Notepad++
@@ -72,10 +71,47 @@ echo.
 
 winget upgrade --all --force --include-unknown
 
+:: ===== Drivers e Updates =====
+echo.
+echo.
+echo [3] Drivers e Updates
+echo ----------------------------------------------------
+echo.
+
+:: Garantindo que o PowerShell pode rodar scripts
+powershell -NoProfile -Command "Set-ExecutionPolicy RemoteSigned -Scope CurrentUser -Force"
+
+:: Garantindo NuGet provider instalado (evita prompt interativo)
+echo Verificando provider NuGet...
+powershell -NoProfile -Command "if (-not (Get-PackageProvider -Name NuGet -ErrorAction SilentlyContinue)) { Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force -Confirm:$false }"
+
+:: Marcando o PSGallery como repositorio confiavel (evita prompt de "untrusted repository")
+echo Configurando PSGallery como fonte confiavel...
+powershell -NoProfile -Command "Set-PSRepository -Name PSGallery -InstallationPolicy Trusted"
+
+:: Verificando/instalando o modulo PSWindowsUpdate
+echo Verificando modulo PSWindowsUpdate...
+powershell -NoProfile -Command "if (-not (Get-Module -ListAvailable -Name PSWindowsUpdate)) { Install-Module -Name PSWindowsUpdate -Force -Confirm:$false -Scope AllUsers }"
+
+if !errorlevel! neq 0 (
+    echo   [ERRO] Nao foi possivel instalar o modulo PSWindowsUpdate.
+    echo   Verifique a conexao com a internet ou politicas de rede.
+) else (
+    echo   [OK] Modulo PSWindowsUpdate disponivel.
+    echo.
+
+    echo Buscando e instalando atualizacoes do Windows...
+    powershell -NoProfile -Command "Import-Module PSWindowsUpdate; Get-WindowsUpdate -AcceptAll -Install -AutoReboot:$false -IgnoreReboot"
+
+    echo.
+    echo Buscando e instalando drivers via Windows Update...
+    powershell -NoProfile -Command "Import-Module PSWindowsUpdate; Get-WindowsUpdate -UpdateType Driver -AcceptAll -Install -AutoReboot:$false -IgnoreReboot"
+)
+
 :: ===== Limpeza e otimizacao =====
 echo.
 echo.
-echo [3] Limpeza e otimizacao
+echo [4] Limpeza e otimizacao
 echo ----------------------------------------------------
 echo.
 
@@ -105,7 +141,7 @@ powershell -NoProfile -Command "Clear-RecycleBin -Force -ErrorAction SilentlyCon
 :: ===== Saude e integridade =====
 echo.
 echo.
-echo [4] Saude e integridade
+echo [5] Saude e integridade
 echo ----------------------------------------------------
 echo.
 
