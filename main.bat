@@ -1,6 +1,7 @@
 
 @echo off
-title Script Principal
+setlocal enabledelayedexpansion
+title Terrys - Script TI
 
 :: Verificando nivel de permissão
 net session >nul 2>&1
@@ -12,7 +13,7 @@ if %errorlevel% neq 0 (
 
 echo.
 echo ==========================
-echo   TERRYS - SCRIPT
+echo   TERRYS - TI
 echo ==========================
 echo.
 
@@ -47,7 +48,7 @@ for %%p in (
     Oracle.JDK.26
 ) do (
 
-    winget install -e --id %%p --silent
+    winget install -e --id %%p --silent >nul 2>&1
 )
 
 :: Atualizando softwares
@@ -61,6 +62,31 @@ winget upgrade --all --force --include-unknown
 
 echo ----------------------------------------------------
 
+:: Limpeza e otimizacao
+echo.
+echo ----------------------------------------------------
+echo [4] Limpeza e otimizacao
+echo ----------------------------------------------------
+echo.
+
+:: Desativando a hibernação
+powercfg -h off
+
+:: Limpeza de temporarios
+del /s /q "%temp%\*" >nul 2>&1
+del /s /q "C:\Windows\Temp\*" >nul 2>&1
+
+:: Limpeza de arquivos do usuario
+::set /p confirm=Deseja realizar a limpeza das pastas de conteúdo do usuário? [y/n]
+
+:: if /i %confirm%=="y" (
+    if exist "%userprofile%\Downloads\"  del /s /q "%userprofile%\Downloads\*" >nul 2>&1
+    if exist "%userprofile%\Documents\"  del /s /q "%userprofile%\Documents\*" >nul 2>&1
+    if exist "%userprofile%\Pictures\"   del /s /q "%userprofile%\Pictures\*"  >nul 2>&1
+    if exist "%userprofile%\Videos\"     del /s /q "%userprofile%\Videos\*"    >nul 2>&1
+    if exist "%userprofile%\Music\"      del /s /q "%userprofile%\Music\*"     >nul 2>&1
+::)
+
 :: Saúde e integridade
 echo.
 echo ----------------------------------------------------
@@ -72,7 +98,7 @@ echo.
 sfc /scannow
 
 :: Saúde do sistema
-DISM /Online /Cleanup-Image /ScanHealth
+DISM /Online /Cleanup-Image /RestoreHealth
 
 :: Disco
 chkdsk
@@ -84,30 +110,5 @@ netsh int ip reset
 
 :: Politicas
 gpupdate /force 
-
-:: Saúde e integridade
-echo.
-echo ----------------------------------------------------
-echo [4] Limpeza e otimizacao
-echo ----------------------------------------------------
-echo.
-
-:: Desativando a hibernação
-powercfg -h off
-
-:: Limpeza de temporarios
-del /s /q %temp%\*
-del /s /q C:\Windows\Temp\*
-
-:: Limpeza de arquivos do usuario
-set /p confirm=Deseja realizar a limpeza das pastas de conteúdo do usuário? [y] || [n]
-
-if %confirm%=="Y" || %confirm%=="y"(
-    if exist "%userprofile%\Downloads\"  del /s /q "%userprofile%\Downloads\*" >nul 2>&1
-    if exist "%userprofile%\Documents\"  del /s /q "%userprofile%\Documents\*" >nul 2>&1
-    if exist "%userprofile%\Pictures\"   del /s /q "%userprofile%\Pictures\*"  >nul 2>&1
-    if exist "%userprofile%\Videos\"     del /s /q "%userprofile%\Videos\*"    >nul 2>&1
-    if exist "%userprofile%\Music\"      del /s /q "%userprofile%\Music\*"     >nul 2>&1
-)
 
 pause
