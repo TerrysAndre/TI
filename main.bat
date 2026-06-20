@@ -221,10 +221,6 @@ echo PROCESSO CONCLUIDO
 echo ----------------------------------------------------
 echo.
 echo A estacao sera reiniciada automaticamente em 30 segundos
-echo para concluir o chkdsk e aplicar as configuracoes de rede.
-echo.
-echo Pressione qualquer tecla para reiniciar AGORA, ou aguarde.
-echo Para CANCELAR o reinicio, feche esta janela.
 echo.
 
-shutdown /a /r /t 30 /c "Manutencao TI concluida - reiniciando para aplicar atualizacoes."
+shutdown /r /t 30 /c "Manutencao TI concluida - reiniciando para aplicar atualizacoes."
