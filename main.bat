@@ -44,17 +44,12 @@ echo.
 for %%p in (
     7zip.7zip
     Adobe.Acrobat.Reader.64-bit
-    Notepad++.Notepad++
-    Google.Chrome
-    Microsoft.Teams
-    Zoom.Zoom
     Microsoft.VisualStudioCode
     JetBrains.IntelliJIDEA
     Git.Git
     OpenJS.NodeJS
     Python.Python.3.14
     EclipseAdoptium.Temurin.21.JDK
-    Insomnia.Insomnia
 ) do (
     echo Instalando %%p...
     winget install -e --id %%p --silent --accept-package-agreements --accept-source-agreements >nul 2>&1
