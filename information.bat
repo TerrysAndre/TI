@@ -65,3 +65,8 @@ echo GATEWAY E DNS
 echo ==========================================
 powershell -NoProfile -Command "Get-CimInstance Win32_NetworkAdapterConfiguration | Where-Object { $_.IPEnabled -eq $true } | ForEach-Object { Write-Output ('Adaptador: ' + $_.Description); Write-Output ('Gateway: ' + ($_.DefaultIPGateway -join ', ')); Write-Output ('DNS: ' + ($_.DNSServerSearchOrder -join ', ')); Write-Output '' }"
 echo.
+
+echo ==========================================
+echo VERIFICANDO DISPOSITIVOS...
+echo ==========================================
+powershell -NoProfile -Command "$problemas = Get-PnpDevice | Where-Object { $_.Status -eq 'Error' -or $_.Status -eq 'Degraded' }; if ($problemas) { Write-Output '[AVISO] Dispositivos com problema encontrados:'; $problemas | ForEach-Object { Write-Output ('  - ' + $_.FriendlyName + ' (' + $_.Status + ')') } } else { Write-Output '[OK] Nenhum dispositivo com problema detectado' }"

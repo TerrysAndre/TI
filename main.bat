@@ -22,7 +22,11 @@ echo   TERRYS - TI
 echo ==========================
 echo.
 
-start "" "%~dp0information.bat"
+:: ===== Bats de auxilio =====
+if exist "%~dp0information.bat" (
+
+    start "" "%~dp0information.bat"
+)
 
 :: ===== Verificando Winget =====
 where winget >nul 2>&1 || (
@@ -38,9 +42,8 @@ echo ----------------------------------------------------
 echo.
 
 for %%p in (
-    RARLab.WinRAR
+    7zip.7zip
     Adobe.Acrobat.Reader.64-bit
-    Microsoft.WindowsTerminal
     Notepad++.Notepad++
     Google.Chrome
     Microsoft.Teams
@@ -49,7 +52,7 @@ for %%p in (
     JetBrains.IntelliJIDEA
     Git.Git
     OpenJS.NodeJS
-    Python.Python.3
+    Python.Python.3.14
     EclipseAdoptium.Temurin.21.JDK
     Insomnia.Insomnia
 ) do (
@@ -69,7 +72,7 @@ echo [2] Atualizacao de Softwares
 echo ----------------------------------------------------
 echo.
 
-winget upgrade --all --force --include-unknown
+winget upgrade --all --force --include-unknown --accept-package-agreements --accept-source-agreements
 
 :: ===== Drivers e Updates =====
 echo.
@@ -108,42 +111,39 @@ if !errorlevel! neq 0 (
     powershell -NoProfile -Command "Import-Module PSWindowsUpdate; Get-WindowsUpdate -UpdateType Driver -AcceptAll -Install -AutoReboot:$false -IgnoreReboot"
 )
 
-:: ===== Limpeza e otimizacao =====
-echo.
-echo.
-echo [4] Limpeza e otimizacao
-echo ----------------------------------------------------
-echo.
-
-:: Desativando a hibernacao
-powercfg -h off
-
-:: Garantindo plano de energia equilibrado
-powercfg /setactive SCHEME_BALANCED
-
-:: Limpeza de temporarios
-echo Limpando temporarios.....
-del /s /q "%temp%\*" >nul 2>&1
-del /s /q "C:\Windows\Temp\*" >nul 2>&1
-
-:: Limpeza de arquivos do usuario
-echo Limpeza de arquivos do usuario.....
-if exist "%userprofile%\Downloads\"  del /s /q "%userprofile%\Downloads\*" >nul 2>&1
-if exist "%userprofile%\Documents\"  del /s /q "%userprofile%\Documents\*" >nul 2>&1
-if exist "%userprofile%\Pictures\"   del /s /q "%userprofile%\Pictures\*"  >nul 2>&1
-if exist "%userprofile%\Videos\"     del /s /q "%userprofile%\Videos\*"    >nul 2>&1
-if exist "%userprofile%\Music\"      del /s /q "%userprofile%\Music\*"     >nul 2>&1
-
-:: Limpeza da lixeira
-echo Esvaziando lixeira.....
-powershell -NoProfile -Command "Clear-RecycleBin -Force -ErrorAction SilentlyContinue"
-
 :: ===== Saude e integridade =====
 echo.
 echo.
-echo [5] Saude e integridade
+echo [4] Saude e integridade
 echo ----------------------------------------------------
 echo.
+
+:: ===== Verificacao e ativacao do Windows (KMS) =====
+set GVLK_PRO=W269N-WFGWX-YVC9B-4J6C9-T83GX
+
+powershell -NoProfile -Command "$lic = Get-CimInstance SoftwareLicensingProduct -Filter \"ApplicationID = '55c92734-d682-4d71-983e-d6ec3f16059f'\" | Where-Object { $_.PartialProductKey }; exit $(if ($lic.LicenseStatus -eq 1) { 0 } else { 1 })"
+
+if !errorlevel! equ 0 (
+    echo [OK] Windows ja esta ativado via KMS.
+) else (
+    echo [AVISO] Windows nao esta ativado.
+
+    :: Verifica se existe alguma chave parcial instalada
+    powershell -NoProfile -Command "$lic = Get-CimInstance SoftwareLicensingProduct -Filter \"ApplicationID = '55c92734-d682-4d71-983e-d6ec3f16059f'\" | Where-Object { $_.PartialProductKey }; exit $(if ($lic.PartialProductKey) { 0 } else { 1 })"
+
+    if !errorlevel! equ 0 (
+        echo Chave existente detectada. Tentando apenas renovar via KMS...
+        cscript //nologo C:\Windows\System32\slmgr.vbs /ato
+    ) else (
+        echo Nenhuma chave instalada. Instalando GVLK Pro e ativando...
+        cscript //nologo C:\Windows\System32\slmgr.vbs /ipk !GVLK_PRO!
+        cscript //nologo C:\Windows\System32\slmgr.vbs /ato
+    )
+
+    echo.
+    echo Resultado final:
+    cscript //nologo C:\Windows\System32\slmgr.vbs /xpr
+)
 
 :: Status do Windows Defender
 echo Verificando status do Windows Defender.....
@@ -184,12 +184,47 @@ echo.
 echo Atualizando politicas de grupo...
 gpupdate /force
 
+:: ===== Limpeza e otimizacao =====
+echo.
+echo.
+echo [5] Limpeza e otimizacao
+echo ----------------------------------------------------
+echo.
+
+:: Desativando a hibernacao
+powercfg -h off
+
+:: Garantindo plano de energia equilibrado
+powercfg /setactive SCHEME_BALANCED
+
+:: Limpeza de temporarios
+echo Limpando temporarios.....
+del /s /q "%temp%\*" >nul 2>&1
+del /s /q "C:\Windows\Temp\*" >nul 2>&1
+
+:: Limpeza de usuarios Locais
+echo Limpeza de usuarios.....
+for %%u in (
+    "*aluno*"
+    "*professor*"
+) do (
+    powershell -NoProfile -Command "Get-CimInstance -ClassName Win32_UserProfile | Where-Object { $_.LocalPath -like %%u } | Remove-CimInstance"
+)
+
+:: Limpeza da lixeira
+echo Esvaziando lixeira.....
+powershell -NoProfile -Command "Clear-RecycleBin -Force -ErrorAction SilentlyContinue"
+
 echo.
 echo.
 echo PROCESSO CONCLUIDO
 echo ----------------------------------------------------
 echo.
-echo IMPORTANTE: Reinicie a estacao para concluir o chkdsk
-echo e aplicar o reset das configuracoes de rede.
+echo A estacao sera reiniciada automaticamente em 30 segundos
+echo para concluir o chkdsk e aplicar as configuracoes de rede.
 echo.
-pause
+echo Pressione qualquer tecla para reiniciar AGORA, ou aguarde.
+echo Para CANCELAR o reinicio, feche esta janela.
+echo.
+
+shutdown /a /r /t 30 /c "Manutencao TI concluida - reiniciando para aplicar atualizacoes."
