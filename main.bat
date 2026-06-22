@@ -35,6 +35,10 @@ where winget >nul 2>&1 || (
     exit /b
 )
 
+:: Modificando tempo de tela e hibernação
+powercfg /change monitor-timeout-ac 240
+powercfg /change hibernate-timeout-ac 240
+
 :: ===== Instalando softwares padrao =====
 echo.
 echo [1] Instalacao de Softwares
@@ -185,12 +189,6 @@ echo.
 echo [5] Limpeza e otimizacao
 echo ----------------------------------------------------
 echo.
-
-:: Desativando a hibernacao
-powercfg -h off
-
-:: Garantindo plano de energia equilibrado
-powercfg /setactive SCHEME_BALANCED
 
 :: Limpeza de temporarios
 echo Limpando temporarios.....
