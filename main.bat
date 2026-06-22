@@ -198,10 +198,10 @@ del /s /q "C:\Windows\Temp\*" >nul 2>&1
 :: Limpeza de usuarios Locais
 echo Limpeza de usuarios.....
 for %%u in (
-    "*aluno*"
-    "*professor*"
+    aluno
+    professor
 ) do (
-    powershell -NoProfile -Command "Get-CimInstance -ClassName Win32_UserProfile | Where-Object { $_.LocalPath -like %%u } | Remove-CimInstance"
+    powershell -NoProfile -Command "Get-CimInstance -ClassName Win32_UserProfile | Where-Object { $_.LocalPath -like '*%%u*' } | Remove-CimInstance"
 )
 
 :: Limpeza da lixeira
